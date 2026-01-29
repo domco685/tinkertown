@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Store Builder</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cream: #FAF8F5;
+      --dark: #1a1a1a;
+      --gray: #666;
+      --light-gray: #e5e5e5;
+      --accent: #3B9EFF;
+      --border: #ccc;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--dark);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ============ LANDING SCREEN ============ */
+    #landing-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: var(--dark);
+      color: white;
+    }
+
+    .landing-content {
+      text-align: center;
+      max-width: 600px;
+      padding: 40px;
+    }
+
+    .landing-content h1 {
+      font-size: 2.5rem;
+      font-weight: 300;
+      margin-bottom: 60px;
+    }
+
+    .input-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .landing-input {
+      width: 100%;
+      padding: 20px 60px 20px 24px;
+      font-size: 1.1rem;
+      border: 2px solid #444;
+      border-radius: 50px;
+      background: #2a2a2a;
+      color: white;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .landing-input::placeholder {
+      color: #888;
+    }
+
+    .landing-input:focus {
+      border-color: var(--accent);
+    }
+
+    .submit-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+
+    .submit-btn:hover {
+      background: #2b8ee6;
+    }
+
+    .submit-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+      background: #ff6b35;
+      border-radius: 50%;
+      position: fixed;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* ============ BUILDER SCREEN ============ */
+    #builder-screen {
+      display: none;
+      height: 100vh;
+      background: var(--dark);
+      padding: 40px;
+    }
+
+    .builder-container {
+      background: var(--cream);
+      border-radius: 16px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Navigation Pills */
+    .nav-pills {
+      display: flex;
+      gap: 12px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+
+    .pill {
+      padding: 8px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      background: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .pill:hover {
+      border-color: #999;
+    }
+
+    .pill.active {
+      background: var(--dark);
+      color: white;
+      border-color: var(--dark);
+    }
+
+    .pill.locked::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 12px;
+      height: 12px;
+      background: #22c55e;
+      border-radius: 50%;
+      border: 2px solid var(--cream);
+    }
+
+    .nav-spacer {
+      flex: 1;
+    }
+
+    .progress-indicator {
+      padding: 8px 20px;
+      border: 1.5px solid var(--light-gray);
+      border-radius: 20px;
+      background: white;
+      font-size: 0.85rem;
+      color: var(--gray);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Preview Pane */
+    .preview-pane {
+      flex: 1;
+      border-right: 1px solid var(--light-gray);
+      padding: 24px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* Layout Grid */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 16px;
+      height: 100%;
+    }
+
+    .layout-item {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .layout-item:hover {
+      border-color: var(--dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .layout-item.selected {
+      border-color: var(--accent);
+      border-width: 3px;
+    }
+
+    .layout-preview {
+      flex: 1;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+      font-size: 0.85rem;
+    }
+
+    .layout-name {
+      padding: 12px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-top: 1px solid var(--light-gray);
+    }
+
+    /* Selected Layout Preview */
+    .selected-preview {
+      display: none;
+      height: 100%;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      overflow: hidden;
+    }
+
+    .selected-preview.visible {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .preview-title {
+      font-weight: 600;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .preview-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preview-btn:hover {
+      background: var(--light-gray);
+    }
+
+    .preview-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafafa;
+      padding: 24px;
+    }
+
+    .store-mockup {
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 9/16;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    /* Chat Pane */
+    .chat-pane {
+      width: 380px;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 16px;
+    }
+
+    .chat-message {
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .chat-message strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .chat-input-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .lock-in-btn {
+      padding: 14px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .lock-in-btn:hover {
+      background: #2b8ee6;
+    }
+
+    .lock-in-btn:disabled {
+      background: var(--light-gray);
+      color: var(--gray);
+      cursor: not-allowed;
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 16px;
+      border: none;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .chat-send-btn {
+      padding: 14px 20px;
+      background: white;
+      border: none;
+      border-left: 1px solid var(--light-gray);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .chat-send-btn:hover {
+      background: var(--light-gray);
+    }
+
+    /* Product & Brand Panes */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      height: fit-content;
+    }
+
+    .product-item {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .product-item:hover {
+      border-color: var(--dark);
+    }
+
+    .product-item.selected {
+      border-color: var(--accent);
+      border-width: 3px;
+    }
+
+    .product-image {
+      aspect-ratio: 1;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+    }
+
+    .product-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .product-price {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    .brand-options {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .brand-option {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .brand-option:hover {
+      border-color: var(--dark);
+    }
+
+    .brand-option.selected {
+      border-color: var(--accent);
+      border-width: 3px;
+    }
+
+    .brand-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .brand-colors {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--light-gray);
+    }
+
+    .brand-description {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    /* ============ EDITOR SCREEN ============ */
+    #editor-screen {
+      display: none;
+      height: 100vh;
+      background: var(--cream);
+    }
+
+    .editor-layout {
+      display: flex;
+      height: 100%;
+    }
+
+    .editor-sidebar {
+      width: 200px;
+      background: #f0f0f0;
+      border-right: 1px solid var(--light-gray);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-title {
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--gray);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar-item {
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .sidebar-item:hover {
+      background: #e5e5e5;
+    }
+
+    .sidebar-item.active {
+      background: white;
+      font-weight: 500;
+    }
+
+    .editor-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .editor-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .publish-btn {
+      padding: 10px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .publish-btn:hover {
+      background: #2b8ee6;
+    }
+
+    .editor-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .editor-preview {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      min-height: 500px;
+      padding: 24px;
+    }
+
+    .editor-chat {
+      width: 320px;
+      border-left: 1px solid var(--light-gray);
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .editor-chat-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--light-gray);
+      font-weight: 500;
+    }
+
+    .editor-chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .editor-chat-input {
+      padding: 16px;
+      border-top: 1px solid var(--light-gray);
+    }
+
+    .editor-chat-input input {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+    }
+
+    /* Fullscreen Preview */
+    .fullscreen-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 1000;
+      padding: 40px;
+    }
+
+    .fullscreen-overlay.visible {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fullscreen-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .fullscreen-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fullscreen-preview {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Summary display */
+    .summary-text {
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .summary-text strong {
+      color: var(--dark);
+    }
+  </style>
+</head>
+<body>
+  <!-- Indicator dot -->
+  <div class="indicator"></div>
+
+  <!-- Landing Screen -->
+  <div id="landing-screen">
+    <div class="landing-content">
+      <h1>What would you like to sell?</h1>
+      <div class="input-container">
+        <input
+          type="text"
+          class="landing-input"
+          id="sell-input"
+          placeholder="banana necklaces, vintage posters, candles..."
+        >
+        <button class="submit-btn" id="start-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Builder Screen -->
+  <div id="builder-screen">
+    <div class="builder-container">
+      <!-- Navigation Pills -->
+      <div class="nav-pills">
+        <button class="pill active" data-tab="store">store</button>
+        <button class="pill" data-tab="product">product</button>
+        <button class="pill" data-tab="brand">brand</button>
+        <div class="nav-spacer"></div>
+        <div class="progress-indicator" id="progress-text">0/3 complete</div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Preview Pane -->
+        <div class="preview-pane">
+          <!-- Store Tab: Layout Grid -->
+          <div id="store-content" class="tab-content">
+            <div class="layout-grid" id="layout-grid">
+              <!-- Layouts will be injected by JS -->
+            </div>
+            <div class="selected-preview" id="selected-store-preview">
+              <div class="preview-header">
+                <span class="preview-title" id="preview-title">Selected Layout</span>
+                <div class="preview-actions">
+                  <button class="preview-btn" id="fullscreen-btn">Fullscreen</button>
+                  <button class="preview-btn" id="change-layout-btn">Change</button>
+                </div>
+              </div>
+              <div class="preview-content">
+                <div class="store-mockup" id="store-mockup">
+                  <!-- Store mockup content -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Tab -->
+          <div id="product-content" class="tab-content hidden">
+            <div class="product-grid" id="product-grid">
+              <!-- Products will be injected by JS -->
+            </div>
+          </div>
+
+          <!-- Brand Tab -->
+          <div id="brand-content" class="tab-content hidden">
+            <div class="brand-options" id="brand-options">
+              <!-- Brand options will be injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Pane -->
+        <div class="chat-pane">
+          <div class="chat-messages" id="chat-messages">
+            <!-- Chat messages will be injected by JS -->
+          </div>
+          <div class="chat-input-container">
+            <button class="lock-in-btn" id="lock-in-btn" disabled>Lock in selection</button>
+            <div class="chat-input-wrapper">
+              <input type="text" class="chat-input" id="chat-input" placeholder="Type a message...">
+              <button class="chat-send-btn">chat</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor Screen -->
+  <div id="editor-screen">
+    <div class="editor-layout">
+      <div class="editor-sidebar">
+        <div class="sidebar-title">L nav</div>
+        <div class="sidebar-nav">
+          <div class="sidebar-item active">Home</div>
+          <div class="sidebar-item">Products</div>
+          <div class="sidebar-item">Pages</div>
+          <div class="sidebar-item">Settings</div>
+          <div class="sidebar-item">Analytics</div>
+        </div>
+      </div>
+      <div class="editor-main">
+        <div class="editor-header">
+          <span class="editor-title">Online Store Editor</span>
+          <button class="publish-btn" id="publish-btn">Publish</button>
+        </div>
+        <div class="editor-content">
+          <div class="editor-preview" id="editor-preview">
+            <!-- Store preview will be rendered here -->
+          </div>
+        </div>
+      </div>
+      <div class="editor-chat">
+        <div class="editor-chat-header">Agent Assistant</div>
+        <div class="editor-chat-messages" id="editor-chat-messages">
+          <div class="chat-message">
+            <p>I've published your store! What would you like to do next?</p>
+          </div>
+        </div>
+        <div class="editor-chat-input">
+          <input type="text" placeholder="chat" id="editor-chat-input">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Preview Overlay -->
+  <div class="fullscreen-overlay" id="fullscreen-overlay">
+    <button class="fullscreen-close" id="fullscreen-close">&times;</button>
+    <div class="fullscreen-content">
+      <div class="fullscreen-preview" id="fullscreen-preview-content">
+        <!-- Fullscreen preview content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    const state = {
+      productType: '',
+      currentTab: 'store',
+      selectedLayout: null,
+      selectedProduct: null,
+      selectedBrand: null,
+      lockedSections: {
+        store: false,
+        product: false,
+        brand: false
+      }
+    };
+
+    // Store layout templates
+    const layouts = [
+      { id: 1, name: 'Minimal Grid', style: 'minimal' },
+      { id: 2, name: 'Hero Focus', style: 'hero' },
+      { id: 3, name: 'Magazine', style: 'magazine' },
+      { id: 4, name: 'Classic Shop', style: 'classic' },
+      { id: 5, name: 'Modern Card', style: 'modern' },
+      { id: 6, name: 'Bold Statement', style: 'bold' },
+      { id: 7, name: 'Elegant', style: 'elegant' },
+      { id: 8, name: 'Playful', style: 'playful' }
+    ];
+
+    // Product templates based on user input
+    function generateProducts(productType) {
+      return [
+        { id: 1, name: `Premium ${productType}`, price: '$49.99' },
+        { id: 2, name: `Classic ${productType}`, price: '$29.99' },
+        { id: 3, name: `Deluxe ${productType}`, price: '$79.99' },
+        { id: 4, name: `Mini ${productType}`, price: '$19.99' },
+        { id: 5, name: `Bundle ${productType}`, price: '$99.99' },
+        { id: 6, name: `Limited Edition ${productType}`, price: '$149.99' }
+      ];
+    }
+
+    // Brand themes
+    const brandThemes = [
+      {
+        id: 1,
+        name: 'Radiant Yellow',
+        colors: ['#FFD700', '#FFA500', '#1a1a1a'],
+        description: 'Bright, energetic, and attention-grabbing'
+      },
+      {
+        id: 2,
+        name: 'Ocean Blue',
+        colors: ['#0077B6', '#00B4D8', '#CAF0F8'],
+        description: 'Calm, trustworthy, and professional'
+      },
+      {
+        id: 3,
+        name: 'Forest Green',
+        colors: ['#2D6A4F', '#40916C', '#B7E4C7'],
+        description: 'Natural, sustainable, and grounded'
+      },
+      {
+        id: 4,
+        name: 'Sunset Pink',
+        colors: ['#FF6B6B', '#FFA07A', '#FFE5E5'],
+        description: 'Warm, friendly, and approachable'
+      },
+      {
+        id: 5,
+        name: 'Midnight Purple',
+        colors: ['#7209B7', '#B5179E', '#F8F0FC'],
+        description: 'Luxurious, creative, and unique'
+      }
+    ];
+
+    // Chat messages per tab
+    const chatMessages = {
+      store: "Here are some layouts to pick. Choose your favorite and next we'll work on name, products and brand.",
+      product: "Now let's set up your products. Pick a product style that matches your brand.",
+      brand: "Finally, choose a brand theme that represents your vision."
+    };
+
+    // DOM Elements
+    const landingScreen = document.getElementById('landing-screen');
+    const builderScreen = document.getElementById('builder-screen');
+    const editorScreen = document.getElementById('editor-screen');
+    const sellInput = document.getElementById('sell-input');
+    const startBtn = document.getElementById('start-btn');
+    const pills = document.querySelectorAll('.pill');
+    const chatMessagesEl = document.getElementById('chat-messages');
+    const lockInBtn = document.getElementById('lock-in-btn');
+    const progressText = document.getElementById('progress-text');
+    const layoutGrid = document.getElementById('layout-grid');
+    const selectedStorePreview = document.getElementById('selected-store-preview');
+    const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+    const fullscreenClose = document.getElementById('fullscreen-close');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const changeLayoutBtn = document.getElementById('change-layout-btn');
+    const publishBtn = document.getElementById('publish-btn');
+
+    // Initialize
+    function init() {
+      renderLayouts();
+      updateChat();
+
+      // Event Listeners
+      startBtn.addEventListener('click', startBuilder);
+      sellInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') startBuilder();
+      });
+
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => switchTab(pill.dataset.tab));
+      });
+
+      lockInBtn.addEventListener('click', lockInSelection);
+      fullscreenBtn?.addEventListener('click', showFullscreen);
+      fullscreenClose.addEventListener('click', hideFullscreen);
+      changeLayoutBtn?.addEventListener('click', changeLayout);
+      publishBtn.addEventListener('click', publishStore);
+
+      fullscreenOverlay.addEventListener('click', (e) => {
+        if (e.target === fullscreenOverlay) hideFullscreen();
+      });
+    }
+
+    function startBuilder() {
+      const value = sellInput.value.trim();
+      if (!value) return;
+
+      state.productType = value;
+      landingScreen.style.display = 'none';
+      builderScreen.style.display = 'block';
+
+      renderProducts();
+      renderBrands();
+      updateChat();
+    }
+
+    function renderLayouts() {
+      layoutGrid.innerHTML = layouts.map(layout => `
+        <div class="layout-item" data-id="${layout.id}">
+          <div class="layout-preview">${layout.style}</div>
+          <div class="layout-name">${layout.name}</div>
+        </div>
+      `).join('');
+
+      layoutGrid.querySelectorAll('.layout-item').forEach(item => {
+        item.addEventListener('click', () => selectLayout(parseInt(item.dataset.id)));
+      });
+    }
+
+    function renderProducts() {
+      const products = generateProducts(state.productType);
+      const productGrid = document.getElementById('product-grid');
+
+      productGrid.innerHTML = products.map(product => `
+        <div class="product-item" data-id="${product.id}">
+          <div class="product-image">Image</div>
+          <div class="product-name">${product.name}</div>
+          <div class="product-price">${product.price}</div>
+        </div>
+      `).join('');
+
+      productGrid.querySelectorAll('.product-item').forEach(item => {
+        item.addEventListener('click', () => selectProduct(parseInt(item.dataset.id)));
+      });
+    }
+
+    function renderBrands() {
+      const brandOptions = document.getElementById('brand-options');
+
+      brandOptions.innerHTML = brandThemes.map(brand => `
+        <div class="brand-option" data-id="${brand.id}">
+          <div class="brand-name">${brand.name}</div>
+          <div class="brand-colors">
+            ${brand.colors.map(c => `<div class="color-swatch" style="background: ${c}"></div>`).join('')}
+          </div>
+          <div class="brand-description">${brand.description}</div>
+        </div>
+      `).join('');
+
+      brandOptions.querySelectorAll('.brand-option').forEach(item => {
+        item.addEventListener('click', () => selectBrand(parseInt(item.dataset.id)));
+      });
+    }
+
+    function selectLayout(id) {
+      state.selectedLayout = layouts.find(l => l.id === id);
+
+      // Update UI
+      layoutGrid.querySelectorAll('.layout-item').forEach(item => {
+        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+      });
+
+      // Show selected preview
+      layoutGrid.classList.add('hidden');
+      selectedStorePreview.classList.add('visible');
+      document.getElementById('preview-title').textContent = state.selectedLayout.name;
+
+      // Render store mockup
+      renderStoreMockup();
+
+      updateLockInButton();
+      updateChat();
+    }
+
+    function renderStoreMockup() {
+      const mockup = document.getElementById('store-mockup');
+      const brand = state.selectedBrand || brandThemes[0];
+
+      mockup.innerHTML = `
+        <div style="height: 60px; background: ${brand.colors[0]}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+          ${state.productType ? state.productType.split(' ')[0].toUpperCase() + ' STORE' : 'YOUR STORE'}
+        </div>
+        <div style="padding: 20px;">
+          <div style="background: #f5f5f5; height: 150px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; color: #999;">
+            Hero Image
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
+            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
+            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
+            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectProduct(id) {
+      const products = generateProducts(state.productType);
+      state.selectedProduct = products.find(p => p.id === id);
+
+      document.getElementById('product-grid').querySelectorAll('.product-item').forEach(item => {
+        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+      });
+
+      updateLockInButton();
+      updateChat();
+    }
+
+    function selectBrand(id) {
+      state.selectedBrand = brandThemes.find(b => b.id === id);
+
+      document.getElementById('brand-options').querySelectorAll('.brand-option').forEach(item => {
+        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+      });
+
+      // Update mockup if visible
+      if (state.selectedLayout) {
+        renderStoreMockup();
+      }
+
+      updateLockInButton();
+      updateChat();
+    }
+
+    function switchTab(tab) {
+      state.currentTab = tab;
+
+      // Update pills
+      pills.forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
+
+      // Show correct content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`${tab}-content`).classList.remove('hidden');
+
+      updateChat();
+      updateLockInButton();
+    }
+
+    function updateChat() {
+      let message = chatMessages[state.currentTab];
+
+      // Add context based on selections
+      if (state.currentTab === 'store' && state.selectedLayout) {
+        message = `Great choice! The "${state.selectedLayout.name}" layout will look amazing for your ${state.productType} store.`;
+      } else if (state.currentTab === 'product' && state.selectedProduct) {
+        message = `"${state.selectedProduct.name}" at ${state.selectedProduct.price} is a great starting point!`;
+      } else if (state.currentTab === 'brand' && state.selectedBrand) {
+        message = `"${state.selectedBrand.name}" - ${state.selectedBrand.description}. Perfect for your brand!`;
+      }
+
+      chatMessagesEl.innerHTML = `<div class="chat-message"><p>${message}</p></div>`;
+    }
+
+    function updateLockInButton() {
+      const currentSelection = {
+        store: state.selectedLayout,
+        product: state.selectedProduct,
+        brand: state.selectedBrand
+      }[state.currentTab];
+
+      const isLocked = state.lockedSections[state.currentTab];
+
+      lockInBtn.disabled = !currentSelection || isLocked;
+      lockInBtn.textContent = isLocked ? 'Locked in!' : 'Lock in selection';
+    }
+
+    function lockInSelection() {
+      state.lockedSections[state.currentTab] = true;
+
+      // Update pill to show locked state
+      pills.forEach(p => {
+        if (p.dataset.tab === state.currentTab) {
+          p.classList.add('locked');
+        }
+      });
+
+      updateProgress();
+      updateLockInButton();
+
+      // Check if all sections are locked
+      const allLocked = Object.values(state.lockedSections).every(v => v);
+      if (allLocked) {
+        setTimeout(() => {
+          goToEditor();
+        }, 500);
+      } else {
+        // Move to next unlocked tab
+        const tabs = ['store', 'product', 'brand'];
+        const nextUnlocked = tabs.find(t => !state.lockedSections[t]);
+        if (nextUnlocked) {
+          switchTab(nextUnlocked);
+        }
+      }
+    }
+
+    function updateProgress() {
+      const locked = Object.values(state.lockedSections).filter(v => v).length;
+      progressText.textContent = `${locked}/3 complete`;
+    }
+
+    function showFullscreen() {
+      const content = document.getElementById('fullscreen-preview-content');
+      content.innerHTML = document.getElementById('store-mockup').innerHTML;
+      fullscreenOverlay.classList.add('visible');
+    }
+
+    function hideFullscreen() {
+      fullscreenOverlay.classList.remove('visible');
+    }
+
+    function changeLayout() {
+      layoutGrid.classList.remove('hidden');
+      selectedStorePreview.classList.remove('visible');
+      state.selectedLayout = null;
+      updateLockInButton();
+    }
+
+    function goToEditor() {
+      builderScreen.style.display = 'none';
+      editorScreen.style.display = 'block';
+
+      // Render final store preview
+      renderEditorPreview();
+    }
+
+    function renderEditorPreview() {
+      const preview = document.getElementById('editor-preview');
+      const brand = state.selectedBrand;
+      const storeName = state.productType.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+      preview.innerHTML = `
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: ${brand.colors[0]}; margin-bottom: 8px;">The ${storeName} Stand</h1>
+          <p style="color: #666;">Your one-stop shop for ${state.productType}</p>
+        </div>
+        <div style="background: ${brand.colors[2]}; padding: 40px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
+          <h2>Featured: ${state.selectedProduct.name}</h2>
+          <p style="font-size: 1.5rem; color: ${brand.colors[0]}; margin-top: 12px;">${state.selectedProduct.price}</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          ${generateProducts(state.productType).slice(0, 6).map(p => `
+            <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="background: #f5f5f5; height: 100px; border-radius: 6px; margin-bottom: 12px;"></div>
+              <div style="font-weight: 500;">${p.name}</div>
+              <div style="color: ${brand.colors[0]};">${p.price}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Update chat
+      const storeDomain = storeName.toLowerCase().replace(/\s+/g, '') + '.myshopify.com';
+      document.getElementById('editor-chat-messages').innerHTML = `
+        <div class="chat-message">
+          <p>I've published <strong>${storeName}</strong> to <strong>${storeDomain}</strong>.</p>
+          <p style="margin-top: 12px;">What do you want to do next?</p>
+        </div>
+      `;
+    }
+
+    function publishStore() {
+      alert('Store published! Your store is now live.');
+    }
+
+    // Start the app
+    init();
+  </script>
+</body>
+</html>
