@@ -2,706 +2,913 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Vibe Store Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     :root {
-      --cream: #FAF8F5;
-      --dark: #1a1a1a;
-      --gray: #666;
-      --light-gray: #e5e5e5;
-      --accent: #3B9EFF;
-      --border: #ccc;
+      --bg: #0a0a0a;
+      --surface: #1a1a1a;
+      --surface-2: #252525;
+      --border: #333;
+      --text: #fff;
+      --text-secondary: #888;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.3);
+      --success: #22c55e;
+      --cream: #faf8f5;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--dark);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+      min-height: 100dvh;
       overflow: hidden;
+      position: fixed;
+      width: 100%;
     }
 
     /* ============ LANDING SCREEN ============ */
-    #landing-screen {
+    .screen {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+    }
+
+    #landing {
       justify-content: center;
-      height: 100vh;
-      background: var(--dark);
-      color: white;
+      align-items: center;
+      padding: 24px;
     }
 
     .landing-content {
+      width: 100%;
+      max-width: 400px;
       text-align: center;
-      max-width: 600px;
-      padding: 40px;
     }
 
-    .landing-content h1 {
-      font-size: 2.5rem;
-      font-weight: 300;
-      margin-bottom: 60px;
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border-radius: 12px;
+      margin: 0 auto 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .input-container {
-      position: relative;
-      width: 100%;
-    }
-
-    .landing-input {
-      width: 100%;
-      padding: 20px 60px 20px 24px;
-      font-size: 1.1rem;
-      border: 2px solid #444;
-      border-radius: 50px;
-      background: #2a2a2a;
+    .logo svg {
+      width: 28px;
+      height: 28px;
       color: white;
-      outline: none;
-      transition: border-color 0.3s;
     }
 
-    .landing-input::placeholder {
-      color: #888;
+    .landing-title {
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 8px;
     }
 
-    .landing-input:focus {
+    .landing-subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+
+    .input-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 4px;
+      display: flex;
+      gap: 8px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-group:focus-within {
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    .submit-btn {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
+    .input-group input {
+      flex: 1;
+      background: none;
       border: none;
-      border-radius: 50%;
+      padding: 14px 16px;
+      font-size: 16px;
+      color: var(--text);
+      outline: none;
+    }
+
+    .input-group input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .input-group button {
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 10px;
       background: var(--accent);
       color: white;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.3s;
+      transition: transform 0.15s, background 0.15s;
     }
 
-    .submit-btn:hover {
-      background: #2b8ee6;
+    .input-group button:active {
+      transform: scale(0.95);
     }
 
-    .submit-btn svg {
+    .input-group button svg {
       width: 20px;
       height: 20px;
     }
 
-    .indicator {
-      width: 8px;
-      height: 8px;
-      background: #ff6b35;
-      border-radius: 50%;
-      position: fixed;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
     /* ============ BUILDER SCREEN ============ */
-    #builder-screen {
-      display: none;
-      height: 100vh;
-      background: var(--dark);
-      padding: 40px;
+    #builder {
+      background: var(--bg);
     }
 
-    .builder-container {
-      background: var(--cream);
-      border-radius: 16px;
-      height: 100%;
+    .builder-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      gap: 12px;
+      background: var(--bg);
+      position: relative;
+      z-index: 10;
     }
 
-    /* Navigation Pills */
-    .nav-pills {
+    .header-top {
       display: flex;
-      gap: 12px;
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--light-gray);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: var(--surface);
+      border-radius: 10px;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      flex: 1;
+    }
+
+    .product-label strong {
+      color: var(--text);
+    }
+
+    .progress-badge {
+      font-size: 12px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border-radius: 20px;
+      color: var(--text-secondary);
+    }
+
+    /* Pills */
+    .pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 0 4px;
+    }
+
+    .pills::-webkit-scrollbar {
+      display: none;
     }
 
     .pill {
-      padding: 8px 20px;
+      padding: 10px 20px;
       border: 1.5px solid var(--border);
-      border-radius: 20px;
-      background: white;
-      font-size: 0.9rem;
+      border-radius: 25px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
+      white-space: nowrap;
       transition: all 0.2s;
       position: relative;
     }
 
-    .pill:hover {
-      border-color: #999;
-    }
-
     .pill.active {
-      background: var(--dark);
-      color: white;
-      border-color: var(--dark);
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
     }
 
     .pill.locked::after {
       content: '';
       position: absolute;
-      top: -4px;
-      right: -4px;
-      width: 12px;
-      height: 12px;
-      background: #22c55e;
+      top: -2px;
+      right: -2px;
+      width: 14px;
+      height: 14px;
+      background: var(--success);
       border-radius: 50%;
-      border: 2px solid var(--cream);
+      border: 2px solid var(--bg);
     }
 
-    .nav-spacer {
-      flex: 1;
-    }
-
-    .progress-indicator {
-      padding: 8px 20px;
-      border: 1.5px solid var(--light-gray);
-      border-radius: 20px;
-      background: white;
-      font-size: 0.85rem;
-      color: var(--gray);
-    }
-
-    /* Main Content Area */
-    .main-content {
-      display: flex;
+    /* Main content area */
+    .builder-body {
       flex: 1;
       overflow: hidden;
-    }
-
-    /* Preview Pane */
-    .preview-pane {
-      flex: 1;
-      border-right: 1px solid var(--light-gray);
-      padding: 24px;
-      overflow-y: auto;
       position: relative;
     }
 
-    /* Layout Grid */
-    .layout-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(2, 1fr);
-      gap: 16px;
-      height: 100%;
+    /* View toggle (Preview / Chat) */
+    .view-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .layout-item {
+    .view-container.show-chat {
+      transform: translateX(-50%);
+    }
+
+    .view-panel {
+      width: 100%;
+      min-width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Preview Panel */
+    .preview-panel {
+      padding: 16px;
+      background: var(--surface);
+    }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .layout-card {
+      background: var(--surface-2);
       border: 2px solid var(--border);
-      border-radius: 12px;
-      background: white;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
       cursor: pointer;
       transition: all 0.2s;
+    }
+
+    .layout-card:active {
+      transform: scale(0.98);
+    }
+
+    .layout-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .layout-thumb {
+      aspect-ratio: 3/4;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .layout-thumb-inner {
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    .layout-item:hover {
-      border-color: var(--dark);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    .layout-thumb-header {
+      height: 20%;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
     }
 
-    .layout-item.selected {
-      border-color: var(--accent);
-      border-width: 3px;
-    }
-
-    .layout-preview {
+    .layout-thumb-body {
       flex: 1;
-      background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--gray);
-      font-size: 0.85rem;
+      padding: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .layout-thumb-item {
+      background: var(--surface-2);
+      border-radius: 3px;
     }
 
     .layout-name {
       padding: 12px;
-      text-align: center;
-      font-size: 0.85rem;
+      font-size: 13px;
       font-weight: 500;
-      border-top: 1px solid var(--light-gray);
+      text-align: center;
+      border-top: 1px solid var(--border);
     }
 
-    /* Selected Layout Preview */
+    /* Selected preview */
     .selected-preview {
       display: none;
+      flex-direction: column;
       height: 100%;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      background: white;
-      overflow: hidden;
     }
 
     .selected-preview.visible {
       display: flex;
+    }
+
+    .preview-phone {
+      flex: 1;
+      background: var(--bg);
+      border-radius: var(--radius);
+      margin: 8px;
+      overflow: hidden;
+      display: flex;
       flex-direction: column;
     }
 
-    .preview-header {
+    .preview-phone-header {
       padding: 16px;
-      border-bottom: 1px solid var(--light-gray);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      text-align: center;
     }
 
-    .preview-title {
+    .preview-phone-header h3 {
+      font-size: 18px;
       font-weight: 600;
     }
 
+    .preview-phone-body {
+      flex: 1;
+      padding: 16px;
+    }
+
+    .preview-hero {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      height: 120px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .preview-item {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      aspect-ratio: 1;
+    }
+
     .preview-actions {
+      padding: 12px;
       display: flex;
       gap: 8px;
     }
 
-    .preview-btn {
-      padding: 6px 12px;
+    .preview-action-btn {
+      flex: 1;
+      padding: 12px;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      background: white;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .preview-btn:hover {
-      background: var(--light-gray);
-    }
-
-    .preview-content {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fafafa;
-      padding: 24px;
-    }
-
-    .store-mockup {
-      width: 100%;
-      max-width: 400px;
-      aspect-ratio: 9/16;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-
-    /* Chat Pane */
-    .chat-pane {
-      width: 380px;
-      display: flex;
-      flex-direction: column;
-      padding: 24px;
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding-bottom: 16px;
-    }
-
-    .chat-message {
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    .chat-message strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .chat-input-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .lock-in-btn {
-      padding: 14px 24px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s;
     }
 
-    .lock-in-btn:hover {
-      background: #2b8ee6;
+    .preview-action-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
     }
 
-    .lock-in-btn:disabled {
-      background: var(--light-gray);
-      color: var(--gray);
-      cursor: not-allowed;
-    }
-
-    .chat-input-wrapper {
-      display: flex;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .chat-input {
-      flex: 1;
-      padding: 14px 16px;
-      border: none;
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    .chat-send-btn {
-      padding: 14px 20px;
-      background: white;
-      border: none;
-      border-left: 1px solid var(--light-gray);
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
-
-    .chat-send-btn:hover {
-      background: var(--light-gray);
-    }
-
-    /* Product & Brand Panes */
+    /* Product grid */
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      height: fit-content;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding-bottom: 100px;
     }
 
-    .product-item {
+    .product-card {
+      background: var(--surface-2);
       border: 2px solid var(--border);
-      border-radius: 12px;
-      background: white;
-      padding: 16px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .product-item:hover {
-      border-color: var(--dark);
-    }
-
-    .product-item.selected {
+    .product-card.selected {
       border-color: var(--accent);
-      border-width: 3px;
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    .product-image {
+    .product-img {
       aspect-ratio: 1;
-      background: #f5f5f5;
-      border-radius: 8px;
-      margin-bottom: 12px;
+      background: var(--bg);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--gray);
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .product-info {
+      padding: 12px;
     }
 
     .product-name {
+      font-size: 14px;
       font-weight: 500;
       margin-bottom: 4px;
     }
 
     .product-price {
-      color: var(--gray);
-      font-size: 0.9rem;
+      font-size: 13px;
+      color: var(--accent);
     }
 
-    .brand-options {
+    /* Brand options */
+    .brand-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      padding-bottom: 100px;
     }
 
-    .brand-option {
+    .brand-card {
+      background: var(--surface-2);
       border: 2px solid var(--border);
-      border-radius: 12px;
-      background: white;
-      padding: 20px;
+      border-radius: var(--radius-sm);
+      padding: 16px;
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .brand-option:hover {
-      border-color: var(--dark);
+    .brand-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    .brand-option.selected {
-      border-color: var(--accent);
-      border-width: 3px;
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
     }
 
     .brand-name {
       font-weight: 600;
-      margin-bottom: 8px;
     }
 
     .brand-colors {
       display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 6px;
     }
 
-    .color-swatch {
-      width: 24px;
-      height: 24px;
+    .color-dot {
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      border: 1px solid var(--light-gray);
+      border: 2px solid var(--bg);
     }
 
-    .brand-description {
-      color: var(--gray);
-      font-size: 0.9rem;
+    .brand-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
     }
 
-    /* ============ EDITOR SCREEN ============ */
-    #editor-screen {
-      display: none;
-      height: 100vh;
-      background: var(--cream);
-    }
-
-    .editor-layout {
-      display: flex;
-      height: 100%;
-    }
-
-    .editor-sidebar {
-      width: 200px;
-      background: #f0f0f0;
-      border-right: 1px solid var(--light-gray);
-      padding: 20px;
+    /* Chat Panel */
+    .chat-panel {
+      background: var(--bg);
       display: flex;
       flex-direction: column;
     }
 
-    .sidebar-title {
-      font-weight: 600;
-      margin-bottom: 20px;
-      color: var(--gray);
+    .chat-messages {
+      flex: 1;
+      padding: 20px 16px;
+      overflow-y: auto;
     }
 
-    .sidebar-nav {
+    .chat-bubble {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border-top-left-radius: 4px;
+      padding: 16px;
+      margin-bottom: 12px;
+      max-width: 85%;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .chat-input-area {
+      padding: 12px 16px;
+      padding-bottom: calc(12px + var(--safe-bottom));
+      border-top: 1px solid var(--border);
       display: flex;
-      flex-direction: column;
       gap: 8px;
     }
 
-    .sidebar-item {
-      padding: 12px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .sidebar-item:hover {
-      background: #e5e5e5;
-    }
-
-    .sidebar-item.active {
-      background: white;
-      font-weight: 500;
-    }
-
-    .editor-main {
+    .chat-input-area input {
       flex: 1;
-      display: flex;
-      flex-direction: column;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
     }
 
-    .editor-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--light-gray);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .chat-input-area input:focus {
+      border-color: var(--accent);
     }
 
-    .editor-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .publish-btn {
-      padding: 10px 24px;
+    .chat-send {
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: var(--radius-sm);
       background: var(--accent);
       color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .publish-btn:hover {
-      background: #2b8ee6;
-    }
-
-    .editor-content {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .editor-preview {
-      width: 100%;
-      max-width: 800px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-      min-height: 500px;
-      padding: 24px;
+    /* Bottom Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px;
+      padding-bottom: calc(12px + var(--safe-bottom));
+      background: linear-gradient(transparent, var(--bg) 20%);
+      display: flex;
+      gap: 8px;
+      z-index: 20;
     }
 
-    .editor-chat {
-      width: 320px;
-      border-left: 1px solid var(--light-gray);
+    .view-toggle {
+      display: flex;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .view-toggle-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .view-toggle-btn.active {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .lock-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lock-btn:disabled {
+      background: var(--surface);
+      color: var(--text-secondary);
+    }
+
+    .lock-btn.locked {
+      background: var(--success);
+    }
+
+    /* ============ EDITOR SCREEN ============ */
+    #editor {
+      background: var(--cream);
+    }
+
+    .editor-header {
+      padding: 12px 16px;
+      background: white;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .editor-title {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .publish-btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .editor-body {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .editor-view-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .editor-view-container.show-chat {
+      transform: translateX(-50%);
+    }
+
+    .editor-preview-panel {
+      width: 100%;
+      min-width: 100%;
+      overflow-y: auto;
+      padding: 16px;
+      background: var(--cream);
+    }
+
+    .store-preview-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .store-header {
+      padding: 24px 16px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+    }
+
+    .store-header h2 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .store-header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .store-featured {
+      padding: 20px 16px;
+      background: #f5f5f5;
+      text-align: center;
+    }
+
+    .store-featured h3 {
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .store-featured .price {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .store-products {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .store-product-card {
+      background: #f9f9f9;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .store-product-img {
+      aspect-ratio: 1;
+      background: #eee;
+    }
+
+    .store-product-info {
+      padding: 12px;
+    }
+
+    .store-product-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .store-product-price {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .editor-chat-panel {
+      width: 100%;
+      min-width: 100%;
+      background: white;
       display: flex;
       flex-direction: column;
-      background: white;
-    }
-
-    .editor-chat-header {
-      padding: 16px;
-      border-bottom: 1px solid var(--light-gray);
-      font-weight: 500;
     }
 
     .editor-chat-messages {
       flex: 1;
-      padding: 16px;
+      padding: 20px 16px;
       overflow-y: auto;
     }
 
-    .editor-chat-input {
+    .editor-chat-bubble {
+      background: #f5f5f5;
+      border-radius: var(--radius);
+      border-top-left-radius: 4px;
       padding: 16px;
-      border-top: 1px solid var(--light-gray);
+      color: #1a1a1a;
+      line-height: 1.5;
     }
 
-    .editor-chat-input input {
-      width: 100%;
-      padding: 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
+    .editor-chat-bubble strong {
+      color: var(--accent);
+    }
+
+    .editor-chat-input-area {
+      padding: 12px 16px;
+      padding-bottom: calc(12px + var(--safe-bottom));
+      border-top: 1px solid #e5e5e5;
+      display: flex;
+      gap: 8px;
+    }
+
+    .editor-chat-input-area input {
+      flex: 1;
+      padding: 14px 16px;
+      background: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: var(--radius-sm);
+      color: #1a1a1a;
+      font-size: 15px;
       outline: none;
     }
 
-    /* Fullscreen Preview */
-    .fullscreen-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
+    .editor-bottom-bar {
+      position: absolute;
+      bottom: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.9);
-      z-index: 1000;
-      padding: 40px;
+      padding: 12px 16px;
+      padding-bottom: calc(12px + var(--safe-bottom));
+      background: linear-gradient(transparent, var(--cream) 20%);
+      z-index: 20;
     }
 
-    .fullscreen-overlay.visible {
+    .editor-view-toggle {
       display: flex;
-      flex-direction: column;
-    }
-
-    .fullscreen-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 40px;
-      height: 40px;
-      border: none;
       background: white;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 1.2rem;
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      gap: 4px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     }
 
-    .fullscreen-content {
+    .editor-view-toggle-btn {
       flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #888;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .fullscreen-preview {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
+    .editor-view-toggle-btn.active {
+      background: var(--accent);
+      color: white;
     }
 
-    /* Hidden */
+    /* Hidden utility */
     .hidden {
       display: none !important;
     }
 
-    /* Summary display */
-    .summary-text {
-      margin-bottom: 16px;
-      line-height: 1.6;
+    /* Animations */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .summary-text strong {
-      color: var(--dark);
+    .animate-in {
+      animation: fadeUp 0.4s ease-out;
     }
   </style>
 </head>
 <body>
-  <!-- Indicator dot -->
-  <div class="indicator"></div>
 
-  <!-- Landing Screen -->
-  <div id="landing-screen">
-    <div class="landing-content">
-      <h1>What would you like to sell?</h1>
-      <div class="input-container">
-        <input
-          type="text"
-          class="landing-input"
-          id="sell-input"
-          placeholder="banana necklaces, vintage posters, candles..."
-        >
-        <button class="submit-btn" id="start-btn">
+  <!-- LANDING SCREEN -->
+  <div id="landing" class="screen">
+    <div class="landing-content animate-in">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h1 class="landing-title">What would you like to sell?</h1>
+      <p class="landing-subtitle">Let's build your store together</p>
+      <div class="input-group">
+        <input type="text" id="product-input" placeholder="candles, jewelry, art prints...">
+        <button id="start-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
@@ -710,521 +917,427 @@
     </div>
   </div>
 
-  <!-- Builder Screen -->
-  <div id="builder-screen">
-    <div class="builder-container">
-      <!-- Navigation Pills -->
-      <div class="nav-pills">
-        <button class="pill active" data-tab="store">store</button>
-        <button class="pill" data-tab="product">product</button>
-        <button class="pill" data-tab="brand">brand</button>
-        <div class="nav-spacer"></div>
-        <div class="progress-indicator" id="progress-text">0/3 complete</div>
+  <!-- BUILDER SCREEN -->
+  <div id="builder" class="screen hidden">
+    <div class="builder-header">
+      <div class="header-top">
+        <button class="back-btn" id="back-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <span class="product-label">Building: <strong id="product-name">...</strong></span>
+        <span class="progress-badge" id="progress">0/3</span>
+      </div>
+      <div class="pills">
+        <button class="pill active" data-tab="store">Store</button>
+        <button class="pill" data-tab="product">Product</button>
+        <button class="pill" data-tab="brand">Brand</button>
+      </div>
+    </div>
+
+    <div class="builder-body">
+      <div class="view-container" id="view-container">
+        <!-- Preview Panel -->
+        <div class="view-panel preview-panel" id="preview-panel">
+          <!-- Store layouts -->
+          <div id="store-view" class="tab-view">
+            <div class="layout-grid" id="layout-grid"></div>
+            <div class="selected-preview" id="selected-preview">
+              <div class="preview-phone" id="preview-phone"></div>
+              <div class="preview-actions">
+                <button class="preview-action-btn" id="change-btn">Change layout</button>
+              </div>
+            </div>
+          </div>
+          <!-- Product selection -->
+          <div id="product-view" class="tab-view hidden">
+            <div class="product-grid" id="product-grid"></div>
+          </div>
+          <!-- Brand selection -->
+          <div id="brand-view" class="tab-view hidden">
+            <div class="brand-list" id="brand-list"></div>
+          </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="view-panel chat-panel">
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button class="chat-send">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- Main Content -->
-      <div class="main-content">
-        <!-- Preview Pane -->
-        <div class="preview-pane">
-          <!-- Store Tab: Layout Grid -->
-          <div id="store-content" class="tab-content">
-            <div class="layout-grid" id="layout-grid">
-              <!-- Layouts will be injected by JS -->
-            </div>
-            <div class="selected-preview" id="selected-store-preview">
-              <div class="preview-header">
-                <span class="preview-title" id="preview-title">Selected Layout</span>
-                <div class="preview-actions">
-                  <button class="preview-btn" id="fullscreen-btn">Fullscreen</button>
-                  <button class="preview-btn" id="change-layout-btn">Change</button>
-                </div>
-              </div>
-              <div class="preview-content">
-                <div class="store-mockup" id="store-mockup">
-                  <!-- Store mockup content -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Product Tab -->
-          <div id="product-content" class="tab-content hidden">
-            <div class="product-grid" id="product-grid">
-              <!-- Products will be injected by JS -->
-            </div>
-          </div>
-
-          <!-- Brand Tab -->
-          <div id="brand-content" class="tab-content hidden">
-            <div class="brand-options" id="brand-options">
-              <!-- Brand options will be injected by JS -->
-            </div>
-          </div>
+      <!-- Bottom bar -->
+      <div class="bottom-bar">
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" data-view="preview">Preview</button>
+          <button class="view-toggle-btn" data-view="chat">Chat</button>
         </div>
-
-        <!-- Chat Pane -->
-        <div class="chat-pane">
-          <div class="chat-messages" id="chat-messages">
-            <!-- Chat messages will be injected by JS -->
-          </div>
-          <div class="chat-input-container">
-            <button class="lock-in-btn" id="lock-in-btn" disabled>Lock in selection</button>
-            <div class="chat-input-wrapper">
-              <input type="text" class="chat-input" id="chat-input" placeholder="Type a message...">
-              <button class="chat-send-btn">chat</button>
-            </div>
-          </div>
-        </div>
+        <button class="lock-btn" id="lock-btn" disabled>Lock in</button>
       </div>
     </div>
   </div>
 
-  <!-- Editor Screen -->
-  <div id="editor-screen">
-    <div class="editor-layout">
-      <div class="editor-sidebar">
-        <div class="sidebar-title">L nav</div>
-        <div class="sidebar-nav">
-          <div class="sidebar-item active">Home</div>
-          <div class="sidebar-item">Products</div>
-          <div class="sidebar-item">Pages</div>
-          <div class="sidebar-item">Settings</div>
-          <div class="sidebar-item">Analytics</div>
-        </div>
-      </div>
-      <div class="editor-main">
-        <div class="editor-header">
-          <span class="editor-title">Online Store Editor</span>
-          <button class="publish-btn" id="publish-btn">Publish</button>
-        </div>
-        <div class="editor-content">
-          <div class="editor-preview" id="editor-preview">
-            <!-- Store preview will be rendered here -->
-          </div>
-        </div>
-      </div>
-      <div class="editor-chat">
-        <div class="editor-chat-header">Agent Assistant</div>
-        <div class="editor-chat-messages" id="editor-chat-messages">
-          <div class="chat-message">
-            <p>I've published your store! What would you like to do next?</p>
-          </div>
-        </div>
-        <div class="editor-chat-input">
-          <input type="text" placeholder="chat" id="editor-chat-input">
-        </div>
-      </div>
+  <!-- EDITOR SCREEN -->
+  <div id="editor" class="screen hidden">
+    <div class="editor-header">
+      <span class="editor-title">Your Store</span>
+      <button class="publish-btn" id="publish-btn">Publish</button>
     </div>
-  </div>
 
-  <!-- Fullscreen Preview Overlay -->
-  <div class="fullscreen-overlay" id="fullscreen-overlay">
-    <button class="fullscreen-close" id="fullscreen-close">&times;</button>
-    <div class="fullscreen-content">
-      <div class="fullscreen-preview" id="fullscreen-preview-content">
-        <!-- Fullscreen preview content -->
+    <div class="editor-body">
+      <div class="editor-view-container" id="editor-view-container">
+        <div class="view-panel editor-preview-panel" id="editor-preview-panel">
+          <div class="store-preview-card" id="store-preview-card"></div>
+        </div>
+        <div class="view-panel editor-chat-panel">
+          <div class="editor-chat-messages" id="editor-chat-messages"></div>
+          <div class="editor-chat-input-area">
+            <input type="text" placeholder="Ask me anything...">
+            <button class="chat-send">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-bottom-bar">
+        <div class="editor-view-toggle">
+          <button class="editor-view-toggle-btn active" data-view="preview">Preview</button>
+          <button class="editor-view-toggle-btn" data-view="chat">Chat</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // State management
+    // State
     const state = {
       productType: '',
       currentTab: 'store',
+      currentView: 'preview',
       selectedLayout: null,
       selectedProduct: null,
       selectedBrand: null,
-      lockedSections: {
-        store: false,
-        product: false,
-        brand: false
-      }
+      locked: { store: false, product: false, brand: false }
     };
 
-    // Store layout templates
+    // Data
     const layouts = [
-      { id: 1, name: 'Minimal Grid', style: 'minimal' },
-      { id: 2, name: 'Hero Focus', style: 'hero' },
-      { id: 3, name: 'Magazine', style: 'magazine' },
-      { id: 4, name: 'Classic Shop', style: 'classic' },
-      { id: 5, name: 'Modern Card', style: 'modern' },
-      { id: 6, name: 'Bold Statement', style: 'bold' },
-      { id: 7, name: 'Elegant', style: 'elegant' },
-      { id: 8, name: 'Playful', style: 'playful' }
+      { id: 1, name: 'Minimal', style: 'Clean & simple' },
+      { id: 2, name: 'Hero', style: 'Big & bold' },
+      { id: 3, name: 'Magazine', style: 'Editorial look' },
+      { id: 4, name: 'Classic', style: 'Traditional store' },
+      { id: 5, name: 'Modern', style: 'Contemporary feel' },
+      { id: 6, name: 'Bold', style: 'Stand out' },
+      { id: 7, name: 'Elegant', style: 'Sophisticated' },
+      { id: 8, name: 'Playful', style: 'Fun & friendly' }
     ];
 
-    // Product templates based on user input
-    function generateProducts(productType) {
-      return [
-        { id: 1, name: `Premium ${productType}`, price: '$49.99' },
-        { id: 2, name: `Classic ${productType}`, price: '$29.99' },
-        { id: 3, name: `Deluxe ${productType}`, price: '$79.99' },
-        { id: 4, name: `Mini ${productType}`, price: '$19.99' },
-        { id: 5, name: `Bundle ${productType}`, price: '$99.99' },
-        { id: 6, name: `Limited Edition ${productType}`, price: '$149.99' }
-      ];
-    }
-
-    // Brand themes
-    const brandThemes = [
-      {
-        id: 1,
-        name: 'Radiant Yellow',
-        colors: ['#FFD700', '#FFA500', '#1a1a1a'],
-        description: 'Bright, energetic, and attention-grabbing'
-      },
-      {
-        id: 2,
-        name: 'Ocean Blue',
-        colors: ['#0077B6', '#00B4D8', '#CAF0F8'],
-        description: 'Calm, trustworthy, and professional'
-      },
-      {
-        id: 3,
-        name: 'Forest Green',
-        colors: ['#2D6A4F', '#40916C', '#B7E4C7'],
-        description: 'Natural, sustainable, and grounded'
-      },
-      {
-        id: 4,
-        name: 'Sunset Pink',
-        colors: ['#FF6B6B', '#FFA07A', '#FFE5E5'],
-        description: 'Warm, friendly, and approachable'
-      },
-      {
-        id: 5,
-        name: 'Midnight Purple',
-        colors: ['#7209B7', '#B5179E', '#F8F0FC'],
-        description: 'Luxurious, creative, and unique'
-      }
+    const brands = [
+      { id: 1, name: 'Radiant Yellow', colors: ['#FFD700', '#FFA500', '#1a1a1a'], desc: 'Bright, energetic, attention-grabbing' },
+      { id: 2, name: 'Ocean Blue', colors: ['#0077B6', '#00B4D8', '#CAF0F8'], desc: 'Calm, trustworthy, professional' },
+      { id: 3, name: 'Forest Green', colors: ['#2D6A4F', '#40916C', '#B7E4C7'], desc: 'Natural, sustainable, grounded' },
+      { id: 4, name: 'Sunset Pink', colors: ['#FF6B6B', '#FFA07A', '#FFE5E5'], desc: 'Warm, friendly, approachable' },
+      { id: 5, name: 'Midnight Purple', colors: ['#7209B7', '#B5179E', '#F8F0FC'], desc: 'Luxurious, creative, unique' }
     ];
 
-    // Chat messages per tab
     const chatMessages = {
-      store: "Here are some layouts to pick. Choose your favorite and next we'll work on name, products and brand.",
-      product: "Now let's set up your products. Pick a product style that matches your brand.",
-      brand: "Finally, choose a brand theme that represents your vision."
+      store: "Pick a layout that feels right. Tap any to select, then we'll set up your products.",
+      product: "Now let's add your products. Choose a style that matches your vibe.",
+      brand: "Almost done! Pick a color theme that represents your brand."
     };
 
-    // DOM Elements
-    const landingScreen = document.getElementById('landing-screen');
-    const builderScreen = document.getElementById('builder-screen');
-    const editorScreen = document.getElementById('editor-screen');
-    const sellInput = document.getElementById('sell-input');
-    const startBtn = document.getElementById('start-btn');
-    const pills = document.querySelectorAll('.pill');
-    const chatMessagesEl = document.getElementById('chat-messages');
-    const lockInBtn = document.getElementById('lock-in-btn');
-    const progressText = document.getElementById('progress-text');
-    const layoutGrid = document.getElementById('layout-grid');
-    const selectedStorePreview = document.getElementById('selected-store-preview');
-    const fullscreenOverlay = document.getElementById('fullscreen-overlay');
-    const fullscreenClose = document.getElementById('fullscreen-close');
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
-    const changeLayoutBtn = document.getElementById('change-layout-btn');
-    const publishBtn = document.getElementById('publish-btn');
+    // DOM
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
 
-    // Initialize
+    // Init
     function init() {
       renderLayouts();
+      renderBrands();
+      bindEvents();
       updateChat();
-
-      // Event Listeners
-      startBtn.addEventListener('click', startBuilder);
-      sellInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') startBuilder();
-      });
-
-      pills.forEach(pill => {
-        pill.addEventListener('click', () => switchTab(pill.dataset.tab));
-      });
-
-      lockInBtn.addEventListener('click', lockInSelection);
-      fullscreenBtn?.addEventListener('click', showFullscreen);
-      fullscreenClose.addEventListener('click', hideFullscreen);
-      changeLayoutBtn?.addEventListener('click', changeLayout);
-      publishBtn.addEventListener('click', publishStore);
-
-      fullscreenOverlay.addEventListener('click', (e) => {
-        if (e.target === fullscreenOverlay) hideFullscreen();
-      });
     }
 
-    function startBuilder() {
-      const value = sellInput.value.trim();
-      if (!value) return;
+    function bindEvents() {
+      // Landing
+      $('#start-btn').onclick = start;
+      $('#product-input').onkeypress = (e) => e.key === 'Enter' && start();
 
-      state.productType = value;
-      landingScreen.style.display = 'none';
-      builderScreen.style.display = 'block';
+      // Builder
+      $('#back-btn').onclick = () => showScreen('landing');
+      $$('.pill').forEach(p => p.onclick = () => switchTab(p.dataset.tab));
+      $$('.view-toggle-btn').forEach(b => b.onclick = () => switchView(b.dataset.view));
+      $('#lock-btn').onclick = lockIn;
+      $('#change-btn').onclick = changeLayout;
 
+      // Editor
+      $$('.editor-view-toggle-btn').forEach(b => b.onclick = () => switchEditorView(b.dataset.view));
+      $('#publish-btn').onclick = () => alert('Store published!');
+    }
+
+    function start() {
+      const val = $('#product-input').value.trim();
+      if (!val) return;
+      state.productType = val;
+      $('#product-name').textContent = val;
       renderProducts();
-      renderBrands();
+      showScreen('builder');
+    }
+
+    function showScreen(id) {
+      $$('.screen').forEach(s => s.classList.add('hidden'));
+      $(`#${id}`).classList.remove('hidden');
+    }
+
+    function switchTab(tab) {
+      state.currentTab = tab;
+      $$('.pill').forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
+      $$('.tab-view').forEach(v => v.classList.add('hidden'));
+      $(`#${tab}-view`).classList.remove('hidden');
       updateChat();
+      updateLockBtn();
+    }
+
+    function switchView(view) {
+      state.currentView = view;
+      $$('.view-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      $('#view-container').classList.toggle('show-chat', view === 'chat');
+    }
+
+    function switchEditorView(view) {
+      $$('.editor-view-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      $('#editor-view-container').classList.toggle('show-chat', view === 'chat');
     }
 
     function renderLayouts() {
-      layoutGrid.innerHTML = layouts.map(layout => `
-        <div class="layout-item" data-id="${layout.id}">
-          <div class="layout-preview">${layout.style}</div>
-          <div class="layout-name">${layout.name}</div>
+      $('#layout-grid').innerHTML = layouts.map(l => `
+        <div class="layout-card" data-id="${l.id}">
+          <div class="layout-thumb">
+            <div class="layout-thumb-inner">
+              <div class="layout-thumb-header"></div>
+              <div class="layout-thumb-body">
+                <div class="layout-thumb-item"></div>
+                <div class="layout-thumb-item"></div>
+                <div class="layout-thumb-item"></div>
+                <div class="layout-thumb-item"></div>
+              </div>
+            </div>
+          </div>
+          <div class="layout-name">${l.name}</div>
         </div>
       `).join('');
 
-      layoutGrid.querySelectorAll('.layout-item').forEach(item => {
-        item.addEventListener('click', () => selectLayout(parseInt(item.dataset.id)));
-      });
+      $$('.layout-card').forEach(c => c.onclick = () => selectLayout(+c.dataset.id));
     }
 
     function renderProducts() {
-      const products = generateProducts(state.productType);
-      const productGrid = document.getElementById('product-grid');
+      const products = [
+        { id: 1, name: `Premium ${state.productType}`, price: '$49' },
+        { id: 2, name: `Classic ${state.productType}`, price: '$29' },
+        { id: 3, name: `Deluxe ${state.productType}`, price: '$79' },
+        { id: 4, name: `Mini ${state.productType}`, price: '$19' },
+        { id: 5, name: `Bundle pack`, price: '$99' },
+        { id: 6, name: `Limited edition`, price: '$149' }
+      ];
 
-      productGrid.innerHTML = products.map(product => `
-        <div class="product-item" data-id="${product.id}">
-          <div class="product-image">Image</div>
-          <div class="product-name">${product.name}</div>
-          <div class="product-price">${product.price}</div>
+      $('#product-grid').innerHTML = products.map(p => `
+        <div class="product-card" data-id="${p.id}">
+          <div class="product-img">Image</div>
+          <div class="product-info">
+            <div class="product-name">${p.name}</div>
+            <div class="product-price">${p.price}</div>
+          </div>
         </div>
       `).join('');
 
-      productGrid.querySelectorAll('.product-item').forEach(item => {
-        item.addEventListener('click', () => selectProduct(parseInt(item.dataset.id)));
-      });
+      $$('.product-card').forEach(c => c.onclick = () => selectProduct(+c.dataset.id, products));
     }
 
     function renderBrands() {
-      const brandOptions = document.getElementById('brand-options');
-
-      brandOptions.innerHTML = brandThemes.map(brand => `
-        <div class="brand-option" data-id="${brand.id}">
-          <div class="brand-name">${brand.name}</div>
-          <div class="brand-colors">
-            ${brand.colors.map(c => `<div class="color-swatch" style="background: ${c}"></div>`).join('')}
+      $('#brand-list').innerHTML = brands.map(b => `
+        <div class="brand-card" data-id="${b.id}">
+          <div class="brand-header">
+            <span class="brand-name">${b.name}</span>
+            <div class="brand-colors">
+              ${b.colors.map(c => `<div class="color-dot" style="background:${c}"></div>`).join('')}
+            </div>
           </div>
-          <div class="brand-description">${brand.description}</div>
+          <div class="brand-desc">${b.desc}</div>
         </div>
       `).join('');
 
-      brandOptions.querySelectorAll('.brand-option').forEach(item => {
-        item.addEventListener('click', () => selectBrand(parseInt(item.dataset.id)));
-      });
+      $$('.brand-card').forEach(c => c.onclick = () => selectBrand(+c.dataset.id));
     }
 
     function selectLayout(id) {
       state.selectedLayout = layouts.find(l => l.id === id);
+      $$('.layout-card').forEach(c => c.classList.toggle('selected', +c.dataset.id === id));
 
-      // Update UI
-      layoutGrid.querySelectorAll('.layout-item').forEach(item => {
-        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
-      });
-
-      // Show selected preview
-      layoutGrid.classList.add('hidden');
-      selectedStorePreview.classList.add('visible');
-      document.getElementById('preview-title').textContent = state.selectedLayout.name;
-
-      // Render store mockup
-      renderStoreMockup();
-
-      updateLockInButton();
+      // Show preview
+      $('#layout-grid').classList.add('hidden');
+      $('#selected-preview').classList.add('visible');
+      renderPhonePreview();
+      updateLockBtn();
       updateChat();
     }
 
-    function renderStoreMockup() {
-      const mockup = document.getElementById('store-mockup');
-      const brand = state.selectedBrand || brandThemes[0];
+    function changeLayout() {
+      state.selectedLayout = null;
+      $('#layout-grid').classList.remove('hidden');
+      $('#selected-preview').classList.remove('visible');
+      $$('.layout-card').forEach(c => c.classList.remove('selected'));
+      updateLockBtn();
+    }
 
-      mockup.innerHTML = `
-        <div style="height: 60px; background: ${brand.colors[0]}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-          ${state.productType ? state.productType.split(' ')[0].toUpperCase() + ' STORE' : 'YOUR STORE'}
+    function selectProduct(id, products) {
+      state.selectedProduct = products.find(p => p.id === id);
+      $$('.product-card').forEach(c => c.classList.toggle('selected', +c.dataset.id === id));
+      updateLockBtn();
+      updateChat();
+    }
+
+    function selectBrand(id) {
+      state.selectedBrand = brands.find(b => b.id === id);
+      $$('.brand-card').forEach(c => c.classList.toggle('selected', +c.dataset.id === id));
+      renderPhonePreview();
+      updateLockBtn();
+      updateChat();
+    }
+
+    function renderPhonePreview() {
+      const brand = state.selectedBrand || brands[0];
+      const name = state.productType.charAt(0).toUpperCase() + state.productType.slice(1);
+
+      $('#preview-phone').innerHTML = `
+        <div class="preview-phone-header" style="background: linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})">
+          <h3>${name} Store</h3>
         </div>
-        <div style="padding: 20px;">
-          <div style="background: #f5f5f5; height: 150px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; color: #999;">
-            Hero Image
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
-            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
-            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
-            <div style="background: #f5f5f5; height: 80px; border-radius: 6px;"></div>
+        <div class="preview-phone-body">
+          <div class="preview-hero">Featured product</div>
+          <div class="preview-grid">
+            <div class="preview-item"></div>
+            <div class="preview-item"></div>
+            <div class="preview-item"></div>
+            <div class="preview-item"></div>
           </div>
         </div>
       `;
     }
 
-    function selectProduct(id) {
-      const products = generateProducts(state.productType);
-      state.selectedProduct = products.find(p => p.id === id);
-
-      document.getElementById('product-grid').querySelectorAll('.product-item').forEach(item => {
-        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
-      });
-
-      updateLockInButton();
-      updateChat();
-    }
-
-    function selectBrand(id) {
-      state.selectedBrand = brandThemes.find(b => b.id === id);
-
-      document.getElementById('brand-options').querySelectorAll('.brand-option').forEach(item => {
-        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
-      });
-
-      // Update mockup if visible
-      if (state.selectedLayout) {
-        renderStoreMockup();
-      }
-
-      updateLockInButton();
-      updateChat();
-    }
-
-    function switchTab(tab) {
-      state.currentTab = tab;
-
-      // Update pills
-      pills.forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
-
-      // Show correct content
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.add('hidden');
-      });
-      document.getElementById(`${tab}-content`).classList.remove('hidden');
-
-      updateChat();
-      updateLockInButton();
-    }
-
     function updateChat() {
-      let message = chatMessages[state.currentTab];
+      let msg = chatMessages[state.currentTab];
 
-      // Add context based on selections
       if (state.currentTab === 'store' && state.selectedLayout) {
-        message = `Great choice! The "${state.selectedLayout.name}" layout will look amazing for your ${state.productType} store.`;
+        msg = `Nice! "${state.selectedLayout.name}" is a great choice for ${state.productType}. Lock it in when ready.`;
       } else if (state.currentTab === 'product' && state.selectedProduct) {
-        message = `"${state.selectedProduct.name}" at ${state.selectedProduct.price} is a great starting point!`;
+        msg = `"${state.selectedProduct.name}" selected! You can add more products later.`;
       } else if (state.currentTab === 'brand' && state.selectedBrand) {
-        message = `"${state.selectedBrand.name}" - ${state.selectedBrand.description}. Perfect for your brand!`;
+        msg = `${state.selectedBrand.name} - ${state.selectedBrand.desc.toLowerCase()}. Perfect!`;
       }
 
-      chatMessagesEl.innerHTML = `<div class="chat-message"><p>${message}</p></div>`;
+      $('#chat-messages').innerHTML = `<div class="chat-bubble animate-in">${msg}</div>`;
     }
 
-    function updateLockInButton() {
-      const currentSelection = {
+    function updateLockBtn() {
+      const btn = $('#lock-btn');
+      const selection = {
         store: state.selectedLayout,
         product: state.selectedProduct,
         brand: state.selectedBrand
       }[state.currentTab];
 
-      const isLocked = state.lockedSections[state.currentTab];
+      const isLocked = state.locked[state.currentTab];
 
-      lockInBtn.disabled = !currentSelection || isLocked;
-      lockInBtn.textContent = isLocked ? 'Locked in!' : 'Lock in selection';
+      btn.disabled = !selection || isLocked;
+      btn.textContent = isLocked ? 'Locked!' : 'Lock in';
+      btn.classList.toggle('locked', isLocked);
     }
 
-    function lockInSelection() {
-      state.lockedSections[state.currentTab] = true;
+    function lockIn() {
+      state.locked[state.currentTab] = true;
 
-      // Update pill to show locked state
-      pills.forEach(p => {
-        if (p.dataset.tab === state.currentTab) {
-          p.classList.add('locked');
-        }
-      });
+      // Update pill
+      $$(`.pill[data-tab="${state.currentTab}"]`).forEach(p => p.classList.add('locked'));
 
-      updateProgress();
-      updateLockInButton();
+      // Update progress
+      const count = Object.values(state.locked).filter(Boolean).length;
+      $('#progress').textContent = `${count}/3`;
 
-      // Check if all sections are locked
-      const allLocked = Object.values(state.lockedSections).every(v => v);
-      if (allLocked) {
-        setTimeout(() => {
-          goToEditor();
-        }, 500);
+      updateLockBtn();
+
+      // Check if done
+      if (count === 3) {
+        setTimeout(goToEditor, 400);
       } else {
-        // Move to next unlocked tab
+        // Go to next tab
         const tabs = ['store', 'product', 'brand'];
-        const nextUnlocked = tabs.find(t => !state.lockedSections[t]);
-        if (nextUnlocked) {
-          switchTab(nextUnlocked);
-        }
+        const next = tabs.find(t => !state.locked[t]);
+        if (next) switchTab(next);
       }
     }
 
-    function updateProgress() {
-      const locked = Object.values(state.lockedSections).filter(v => v).length;
-      progressText.textContent = `${locked}/3 complete`;
-    }
-
-    function showFullscreen() {
-      const content = document.getElementById('fullscreen-preview-content');
-      content.innerHTML = document.getElementById('store-mockup').innerHTML;
-      fullscreenOverlay.classList.add('visible');
-    }
-
-    function hideFullscreen() {
-      fullscreenOverlay.classList.remove('visible');
-    }
-
-    function changeLayout() {
-      layoutGrid.classList.remove('hidden');
-      selectedStorePreview.classList.remove('visible');
-      state.selectedLayout = null;
-      updateLockInButton();
-    }
-
     function goToEditor() {
-      builderScreen.style.display = 'none';
-      editorScreen.style.display = 'block';
-
-      // Render final store preview
-      renderEditorPreview();
+      showScreen('editor');
+      renderStorePreview();
+      renderEditorChat();
     }
 
-    function renderEditorPreview() {
-      const preview = document.getElementById('editor-preview');
+    function renderStorePreview() {
       const brand = state.selectedBrand;
-      const storeName = state.productType.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const name = state.productType.charAt(0).toUpperCase() + state.productType.slice(1);
+      const products = [
+        { name: `Premium ${state.productType}`, price: '$49' },
+        { name: `Classic ${state.productType}`, price: '$29' },
+        { name: `Deluxe ${state.productType}`, price: '$79' },
+        { name: `Mini ${state.productType}`, price: '$19' }
+      ];
 
-      preview.innerHTML = `
-        <div style="text-align: center; margin-bottom: 24px;">
-          <h1 style="color: ${brand.colors[0]}; margin-bottom: 8px;">The ${storeName} Stand</h1>
-          <p style="color: #666;">Your one-stop shop for ${state.productType}</p>
+      $('#store-preview-card').innerHTML = `
+        <div class="store-header" style="background: linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})">
+          <h2>The ${name} Stand</h2>
+          <p>Your one-stop shop</p>
         </div>
-        <div style="background: ${brand.colors[2]}; padding: 40px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
-          <h2>Featured: ${state.selectedProduct.name}</h2>
-          <p style="font-size: 1.5rem; color: ${brand.colors[0]}; margin-top: 12px;">${state.selectedProduct.price}</p>
+        <div class="store-featured" style="background: ${brand.colors[2]}">
+          <h3>${state.selectedProduct.name}</h3>
+          <div class="price" style="color: ${brand.colors[0]}">${state.selectedProduct.price}</div>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-          ${generateProducts(state.productType).slice(0, 6).map(p => `
-            <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: center;">
-              <div style="background: #f5f5f5; height: 100px; border-radius: 6px; margin-bottom: 12px;"></div>
-              <div style="font-weight: 500;">${p.name}</div>
-              <div style="color: ${brand.colors[0]};">${p.price}</div>
+        <div class="store-products">
+          ${products.map(p => `
+            <div class="store-product-card">
+              <div class="store-product-img"></div>
+              <div class="store-product-info">
+                <div class="store-product-name">${p.name}</div>
+                <div class="store-product-price" style="color: ${brand.colors[0]}">${p.price}</div>
+              </div>
             </div>
           `).join('')}
         </div>
       `;
+    }
 
-      // Update chat
-      const storeDomain = storeName.toLowerCase().replace(/\s+/g, '') + '.myshopify.com';
-      document.getElementById('editor-chat-messages').innerHTML = `
-        <div class="chat-message">
-          <p>I've published <strong>${storeName}</strong> to <strong>${storeDomain}</strong>.</p>
-          <p style="margin-top: 12px;">What do you want to do next?</p>
+    function renderEditorChat() {
+      const name = state.productType.charAt(0).toUpperCase() + state.productType.slice(1);
+      const domain = state.productType.toLowerCase().replace(/\s+/g, '') + 'stand.myshopify.com';
+
+      $('#editor-chat-messages').innerHTML = `
+        <div class="editor-chat-bubble animate-in">
+          I've set up <strong>The ${name} Stand</strong> at <strong>${domain}</strong>.
+          What would you like to change?
         </div>
       `;
     }
 
-    function publishStore() {
-      alert('Store published! Your store is now live.');
-    }
-
-    // Start the app
     init();
   </script>
 </body>
